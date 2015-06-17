@@ -258,6 +258,7 @@ class LogStash::Outputs::ElasticSearch < LogStash::Outputs::Base
   #
   # For more details on actions, check out the http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-bulk.html[Elasticsearch bulk API documentation]
   config :action, :validate => :string, :default => "index"
+  config :dnspool, :validate => :boolean, :default => false
 
   # Username and password (only valid when protocol is HTTP; this setting works with HTTP or HTTPS auth)
   config :user, :validate => :string
@@ -393,7 +394,7 @@ class LogStash::Outputs::ElasticSearch < LogStash::Outputs::Base
     else # if @protocol in ["transport","http"]
       @client = @host.map do |host|
         (_host,_port) = host.split ":"
-        options = { :host => _host, :port => _port || @port }.merge(common_options)
+        options = { :host => _host, :port => _port || @port, :dnspool => @dnspool }.merge(common_options)
         @logger.info "Create client to elasticsearch server on #{_host}:#{_port}"
         client_class.new(options)
       end # @host.map

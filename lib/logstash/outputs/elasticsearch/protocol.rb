@@ -285,11 +285,25 @@ module LogStash::Outputs::Elasticsearch
         client = org.elasticsearch.client.transport.TransportClient.new(settings.build)
 
         if options[:host]
-          client.addTransportAddress(
-            org.elasticsearch.common.transport.InetSocketTransportAddress.new(
-              options[:host], options[:port].to_i
+          if options[:dnspool]
+            dns = Resolv::DNS.open
+            records = dns.getresources(options[:host], Resolv::DNS::Resource::IN::A)
+            if !records.empty?
+              records.map(&:address).each() do |addr|
+                client.addTransportAddress(
+                  org.elasticsearch.common.transport.InetSocketTransportAddress.new(
+                    "#{addr}", options[:port].to_i
+                  )
+                )
+              end
+            end
+          else
+            client.addTransportAddress(
+              org.elasticsearch.common.transport.InetSocketTransportAddress.new(
+                  options[:host], options[:port].to_i
+              )
             )
-          )
+          end
         end
 
         return client
